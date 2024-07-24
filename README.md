@@ -3,10 +3,12 @@ This script will match twiss functions and magnetic elements for designing latti
 
 
 $$
+\begin{equation}
 \mathcal{M} = \begin{pmatrix}
 M_{11} & M_{12} & 0 & 0 \\
 M_{21} & M_{22} &0 & 0 \\
 0 & 0 & M_{33} & M_{34} \\
 0 & 0 & M_{43} & M_{44}
 \end{pmatrix}
+\end{equation}
 $$
