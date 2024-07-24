@@ -21,19 +21,17 @@ $$
 \beta
 \alpha
 \gamma
-\end{pmatrix} = 
-
-\begin{pmatrix}
+\end{pmatrix} = \begin{pmatrix}
 M_{11}^{2} & -2M_{11}M_{12} & M_{12}^{2} \\
 -2M_{11}M_{21} & (M_{11}M_{22} + M_{12}M_{21}) & -2M_{12}M_{22} \\
 M_{21}^{2} & -2M_{21}M_{22} & M_{22}^{2}
 \end{pmatrix}
 
-\begin{equation}
+\begin{pmatrix}
 \beta \\
 \alpha \\
 \gamma
-\end{equation}
+\end{pmatrix}
 
 \end{equation}
 $$
