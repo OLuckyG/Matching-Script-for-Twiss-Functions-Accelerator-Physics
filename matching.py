@@ -129,14 +129,14 @@ def mutransport(muI0,muII0,betx0,betay0,l):
 
 ## Objective function to be minimized
 def objfunc(x):
-    betax = 10.0 # optic functions
-    betay = 10.0
+    betax = x[5] # optic functions
+    betay = x[5]
     alfax = 0.0
     alfay = 0.0
     gammax = (1+alfax**2)/betax
     gammay = (1+alfay**2)/betay
-    betax0 = 10.0
-    betay0 = 10.0
+    betax0 = x[5]
+    betay0 = x[5]
     alfax0 = 0.0
     alfay0 = 0.0
     gammax0 = (1+alfax0**2)/betax0,
@@ -153,7 +153,7 @@ def objfunc(x):
     dpy0=0.0
     dpx = 0.0
     dpx0 = 0.0
-    stepsize = 2 # stepsizes
+    stepsize = 3 # stepsizes
     # Element definitions:
     # Lengths are divided by stepsize for integration purposes
     ## The use of this is to give an array of things to optimize, so array positions are focusing strenghts or drift lengths, it can also be beta functions
@@ -162,6 +162,7 @@ def objfunc(x):
     Q01 = Quad(l=0.2/stepsize,k=x[1])
     Q02 = Quad(l=0.2/stepsize,k=x[2])
     Q03 = Quad(l=0.2/stepsize,k=x[3])
+    MBI = Dipole(l=1.0/stepsize,rho=5.729577951308232) ## 10 degrees
     TEST = [D00,Q00,D00,Q01,D00,D00,Q02,D00,Q03,D00]
     extended = []
     ## This loop adds that many elements as there is stepsize!
@@ -193,13 +194,13 @@ def objfunc(x):
     diff8 = gammay0 - gammay
     diff9 =  muxfdesired - muxf
     diff10 =  muyfdesired - muyf
-    objective = np.sum(diff1**2 + diff2**2 + diff3**2 + diff4**2 + diff7**2 + diff8**2 + diff9**2 + diff10**2 ) 
+    objective = np.sum(diff1**2 + diff2**2 + diff3**2 + diff4**2 + diff7**2 + diff8**2) 
     return objective
 
 ## This function checks and later used to plot the optic functions
 def testing(x):
-    betax = 10.0
-    betay = 10.0
+    betax = x[5]
+    betay = x[5]
     alfax = 0.0
     alfay = 0.0
     gammax = (1+alfax**2)/betax
@@ -221,13 +222,13 @@ def testing(x):
     Q01 = Quad(l=0.2/stepsize,k=x[1])
     Q02 = Quad(l=0.2/stepsize,k=x[2])
     Q03 = Quad(l=0.2/stepsize,k=x[3])
+    MBI = Dipole(l=1.0/stepsize,rho=5.729577951308232) ## 10 degrees
     TEST = [D00,Q00,D00,Q01,D00,D00,Q02,D00,Q03,D00]
     Nturns = 1 ## Can specify number of repeated cells
     extended = []
     extendedturns = []
     betaxarray.append(betax)
     betayarray.append(betay)
-    Lzarray.append(Lz0)
     larray.append(0.0)
     dxarray.append(dx)
     dyarray.append(dy)
@@ -246,7 +247,7 @@ def testing(x):
         betaxarray.append(betax)
         betayarray.append(betay)
         larray.append(element.lreturn())
-        muxf,muyf = mutransport(muIf,muIIf,betax,betay,lelement)
+        muxf,muyf = mutransport(muxf,muyf,betax,betay,lelement)
     for element in extended:
         mat = element.t_matrix()
         if element==MBI:
@@ -269,8 +270,8 @@ def testing(x):
 
 ## This function can be used to put a constraint on maximum and minimum boundaries through lattice:
 def max_beta_constraint(x, max_beta=8.0, min_beta = 1.0):
-    betax = 10.0
-    betay = 10.0
+    betax = 5.0
+    betay = 5.0
     alfax = 0.0
     alfay = 0.0
     gammax = (1+alfax**2)/betax
@@ -281,6 +282,7 @@ def max_beta_constraint(x, max_beta=8.0, min_beta = 1.0):
     Q01 = Quad(l=0.2/stepsize,k=x[1])
     Q02 = Quad(l=0.2/stepsize,k=x[2])
     Q03 = Quad(l=0.2/stepsize,k=x[3])
+    MBI = Dipole(l=1.0/stepsize,rho=5.729577951308232) ## 10 degrees
     TEST = [D00,Q00,D00,Q01,D00,D00,Q02,D00,Q03,D00]
 
     extended = []
@@ -311,21 +313,21 @@ def matchingfunc():
     numberofquads = 4
     numberofdrifts = 1
     lower_boundaryquad = -15.0
-    upper_boundaryquad = -15.0
+    upper_boundaryquad = 15.0
     constraints = [{'type': 'ineq', 'fun': max_beta_constraint, 'args': (1.8,1.3)}]
-    x0 = [random.gauss(4.0,5.0) for _ in range(numberofquads)] + [0.2]*1
-    result = minimize(objfunc, x0, tol=1e-10, method='Nelder-Mead',callback=callback, bounds=[(lower_boundaryquad, upper_boundaryquad)] *numberofquads + [(0.01,1.0)]*numberofdrifts, options={'maxiter':50000}) 
+    x0 = [random.gauss(4.0,5.0) for _ in range(numberofquads)] + [0.2]*numberofdrifts + [5.0]
+    result = minimize(objfunc, x0, tol=1e-10, method='Nelder-Mead',callback=callback, bounds=[(lower_boundaryquad, upper_boundaryquad)]*numberofquads + [(0.01,1.0)]*numberofdrifts + [(1.0,10.0)], options={'maxiter':50000}) 
     counter = 0
-    while result.fun > 0.00000000001: ## Asserts that the error functions is small
-        x0 = [random.gauss(4.0,5.0) for _ in range(numberofquads)] + [0.2]*1
-        result = minimize(objfunc, x0, tol=1e-10, method='Nelder-Mead',callback=callback, bounds=[(lower_boundaryquad, upper_boundaryquad)] *numberofquads + [(0.01,1.0)]*numberofdrifts, options={'maxiter':50000}) 
+    while result.fun > 0.00000000001:
+        x0 = [random.gauss(4.0,5.0) for _ in range(numberofquads)] + [0.2]*numberofdrifts + [5.0]
+        result = minimize(objfunc, x0, tol=1e-10, method='Nelder-Mead',callback=callback, bounds=[(lower_boundaryquad, upper_boundaryquad)]*numberofquads + [(0.01,1.0)]*numberofdrifts + [(1.0,10.0)], options={'maxiter':50000}) 
         counter += 1
         if (counter % 100 ==0):
             print("===============================================")
             print("counter",counter)
             print("error func:",result.fun)
             print("===============================================")
-            time.sleep(10)
+            time.sleep(5)
 
     return result.fun, result.x
 
@@ -344,18 +346,26 @@ for i in range(len(ltot)):
     ltotarray[i] = sumt
 
 
-plt.plot(ltotarray,betxarray,color="red")
-plt.plot(ltotarray,betyarray,color="blue")
+plt.plot(ltotarray,betxarray,color="red",label=r'$\beta_{x}$')
+plt.plot(ltotarray,betyarray,color="blue",label=r'$\beta_{y}$')
+plt.ylabel(r'$\beta_{x,y}$ m')
+plt.xlabel("s[m]")
+plt.legend()
 plt.savefig("betafunctions.png")
 plt.clf()
 
 plt.plot(ltotarray,dxarray,color="red")
 plt.plot(ltotarray,dyarray,color="green")
+plt.ylabel(r'$D_{x,y}$ m')
+plt.xlabel("s[m]")
 plt.savefig("dispfunctions.png")
 plt.clf()
 
-plt.plot(ltotarray,muxarr,color="black")
-plt.plot(ltotarray,muyarr,color="red")
+plt.plot(ltotarray,muxarr,color="black",label=r'$\mu_{x}$')
+plt.plot(ltotarray,muyarr,color="red",label=r'$\mu_{y}$')
+plt.legend()
+plt.ylabel(r'$\mu_{x,y}$ [rad]')
+plt.xlabel("s [m]")
 plt.savefig("phaseadvance.png")
 plt.clf()
 
